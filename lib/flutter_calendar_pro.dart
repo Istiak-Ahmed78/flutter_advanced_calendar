@@ -1,5 +1,5 @@
 /// A highly customizable, feature-rich calendar package for Flutter
-library flutter_calendar_pro;
+library;
 
 // Controllers
 export 'src/core/controllers/calendar_controller.dart';
