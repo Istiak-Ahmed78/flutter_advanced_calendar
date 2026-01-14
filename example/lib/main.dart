@@ -33,10 +33,10 @@ class _CalendarDemoPageState extends State<CalendarDemoPage> {
   late CalendarController _controller;
   late CalendarConfig _config;
   CalendarTheme _theme = CalendarTheme.light();
-  bool _hideWeekends = false;
-  bool _showHolidays = true;
-  bool _showEventDots = true;
-  bool _enableRangeSelection = false;
+  final bool _hideWeekends = false;
+  final bool _showHolidays = true;
+  final bool _showEventDots = true;
+  final bool _enableRangeSelection = false;
 
   @override
   void initState() {
@@ -742,7 +742,7 @@ class _CalendarDemoPageState extends State<CalendarDemoPage> {
                       _showColorPicker(context, selectedColor, (color) {
                         setDialogState(() {
                           selectedColor = color;
-                          selectedDotColor = color.withOpacity(0.7);
+                          selectedDotColor = color.withValues(alpha: 0.7);
                         });
                       });
                     },
@@ -1003,3 +1003,4 @@ class _CalendarDemoPageState extends State<CalendarDemoPage> {
     }
   }
 }
+// End of example code

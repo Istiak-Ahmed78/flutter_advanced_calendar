@@ -4,24 +4,23 @@ import '../core/models/calendar_config.dart';
 import '../core/models/calendar_event.dart';
 import '../themes/calendar_theme.dart';
 import '../widgets/event_card.dart';
-import '../core/utils/date_utils.dart' as calendar_utils;
 
 /// Agenda view displaying events in a list grouped by date
 class AgendaView extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(CalendarEvent)? onEventTap;
-  final int daysToShow;
-
   const AgendaView({
-    Key? key,
+    super.key,
     required this.controller,
     required this.config,
     required this.theme,
     this.onEventTap,
     this.daysToShow = 30,
-  }) : super(key: key);
+  });
+
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(CalendarEvent)? onEventTap;
+  final int daysToShow;
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +36,14 @@ class AgendaView extends StatelessWidget {
             Icon(
               Icons.event_busy,
               size: 64,
-              color: theme.dayTextColor.withOpacity(0.3),
+              color: theme.dayTextColor.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               'No upcoming events',
               style: TextStyle(
                 fontSize: 16,
-                color: theme.dayTextColor.withOpacity(0.5),
+                color: theme.dayTextColor.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -117,7 +116,7 @@ class AgendaView extends StatelessWidget {
                     _getMonthYear(date),
                     style: TextStyle(
                       fontSize: 12,
-                      color: theme.weekdayTextColor.withOpacity(0.7),
+                      color: theme.weekdayTextColor.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -126,7 +125,7 @@ class AgendaView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.eventIndicatorColor.withOpacity(0.2),
+                  color: theme.eventIndicatorColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -148,7 +147,6 @@ class AgendaView extends StatelessWidget {
               child: EventCard(
                 event: event,
                 theme: theme,
-                compact: false,
                 showTime: config.showEventTime,
                 showLocation: config.showEventLocation,
                 showIcon: config.showEventIcon,

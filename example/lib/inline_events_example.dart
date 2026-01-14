@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_calendar/flutter_advanced_calendar.dart';
 
 class InlineEventsExample extends StatefulWidget {
-  const InlineEventsExample({Key? key}) : super(key: key);
+  const InlineEventsExample({super.key});
 
   @override
   State<InlineEventsExample> createState() => _InlineEventsExampleState();
@@ -73,7 +73,7 @@ class _InlineEventsExampleState extends State<InlineEventsExample> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

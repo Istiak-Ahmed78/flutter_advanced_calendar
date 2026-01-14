@@ -2,9 +2,9 @@ import 'enums.dart';
 
 /// Recurrence end condition
 class RecurrenceEnd {
-  final RecurrenceEndType type;
-  final DateTime? until;
-  final int? count;
+  RecurrenceEnd.count(this.count)
+      : type = RecurrenceEndType.count,
+        until = null;
 
   RecurrenceEnd.never()
       : type = RecurrenceEndType.never,
@@ -15,30 +15,40 @@ class RecurrenceEnd {
       : type = RecurrenceEndType.until,
         count = null;
 
-  RecurrenceEnd.count(this.count)
-      : type = RecurrenceEndType.count,
-        until = null;
-
-  Map<String, dynamic> toJson() => {
-        'type': type.name,
-        'until': until?.toIso8601String(),
-        'count': count,
-      };
-
   factory RecurrenceEnd.fromJson(Map<String, dynamic> json) {
+    final typeString = json['type']?.toString() ?? 'never';
     final type = RecurrenceEndType.values.firstWhere(
-      (e) => e.name == json['type'],
+      (e) => e.name == typeString,
+      orElse: () => RecurrenceEndType.never,
     );
 
     switch (type) {
       case RecurrenceEndType.never:
         return RecurrenceEnd.never();
       case RecurrenceEndType.until:
-        return RecurrenceEnd.until(DateTime.parse(json['until']));
+        final untilString = json['until']?.toString();
+        return RecurrenceEnd.until(
+          untilString != null ? DateTime.parse(untilString) : DateTime.now(),
+        );
       case RecurrenceEndType.count:
-        return RecurrenceEnd.count(json['count']);
+        final count = json['count'] is int
+            ? json['count'] as int
+            : json['count'] is String
+                ? int.tryParse(json['count'] as String) ?? 1
+                : 1;
+        return RecurrenceEnd.count(count);
     }
   }
+
+  final RecurrenceEndType type;
+  final DateTime? until;
+  final int? count;
+
+  Map<String, dynamic> toJson() => {
+        'type': type.name,
+        'until': until?.toIso8601String(),
+        'count': count,
+      };
 
   @override
   String toString() {
@@ -55,13 +65,6 @@ class RecurrenceEnd {
 
 /// Recurrence rule for repeating events
 class RecurrenceRule {
-  final RecurrenceFrequency frequency;
-  final int interval;
-  final List<int>? byWeekDay; // 1=Monday, 7=Sunday
-  final List<int>? byMonthDay; // 1-31
-  final List<int>? byMonth; // 1-12
-  final RecurrenceEnd? endCondition;
-
   RecurrenceRule({
     required this.frequency,
     this.interval = 1,
@@ -71,6 +74,40 @@ class RecurrenceRule {
     this.endCondition,
   }) : assert(interval > 0, 'Interval must be greater than 0');
 
+  factory RecurrenceRule.fromJson(Map<String, dynamic> json) => RecurrenceRule(
+        frequency: RecurrenceFrequency.values.firstWhere(
+          (e) => e.name == (json['frequency']?.toString() ?? 'daily'),
+          orElse: () => RecurrenceFrequency.daily,
+        ),
+        interval: (json['interval'] is int)
+            ? json['interval'] as int
+            : (json['interval'] is String)
+                ? int.tryParse(json['interval'] as String) ?? 1
+                : 1,
+        byWeekDay: json['byWeekDay'] is List
+            ? List<int>.from(json['byWeekDay'] as List)
+            : null,
+        byMonthDay: json['byMonthDay'] is List
+            ? List<int>.from(json['byMonthDay'] as List)
+            : null,
+        byMonth: json['byMonth'] is List
+            ? List<int>.from(json['byMonth'] as List)
+            : null,
+        endCondition: json['endCondition'] != null
+            ? RecurrenceEnd.fromJson(
+                json['endCondition'] is Map<String, dynamic>
+                    ? json['endCondition'] as Map<String, dynamic>
+                    : Map<String, dynamic>.from(json['endCondition'] as Map))
+            : null,
+      );
+
+  final RecurrenceFrequency frequency;
+  final int interval;
+  final List<int>? byWeekDay; // 1=Monday, 7=Sunday
+  final List<int>? byMonthDay; // 1-31
+  final List<int>? byMonth; // 1-12
+  final RecurrenceEnd? endCondition;
+
   /// Generate occurrences within a date range
   List<DateTime> generateOccurrences(
     DateTime start,
@@ -78,8 +115,8 @@ class RecurrenceRule {
     DateTime rangeEnd,
   ) {
     final occurrences = <DateTime>[];
-    DateTime current = start;
-    int count = 0;
+    var current = start;
+    var count = 0;
 
     // Safety limit to prevent infinite loops
     const maxOccurrences = 1000;
@@ -145,8 +182,8 @@ class RecurrenceRule {
       case RecurrenceFrequency.weekly:
         if (byWeekDay != null && byWeekDay!.isNotEmpty) {
           // Find next matching weekday
-          DateTime next = current.add(const Duration(days: 1));
-          int daysChecked = 0;
+          var next = current.add(const Duration(days: 1));
+          var daysChecked = 0;
           const maxDays = 7 * 4; // Check up to 4 weeks
 
           while (daysChecked < maxDays) {
@@ -161,15 +198,15 @@ class RecurrenceRule {
         return current.add(Duration(days: 7 * interval));
 
       case RecurrenceFrequency.monthly:
-        int newYear = current.year;
-        int newMonth = current.month + interval;
+        var newYear = current.year;
+        var newMonth = current.month + interval;
 
         while (newMonth > 12) {
           newMonth -= 12;
           newYear++;
         }
 
-        int newDay = current.day;
+        var newDay = current.day;
         if (byMonthDay != null && byMonthDay!.isNotEmpty) {
           newDay = byMonthDay!.first;
         }
@@ -238,10 +275,9 @@ class RecurrenceRule {
     return days[weekday - 1];
   }
 
-  String _formatRRuleDate(DateTime date) {
-    return '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}T'
-        '${date.hour.toString().padLeft(2, '0')}${date.minute.toString().padLeft(2, '0')}${date.second.toString().padLeft(2, '0')}Z';
-  }
+  String _formatRRuleDate(DateTime date) =>
+      '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}T'
+      '${date.hour.toString().padLeft(2, '0')}${date.minute.toString().padLeft(2, '0')}${date.second.toString().padLeft(2, '0')}Z';
 
   Map<String, dynamic> toJson() => {
         'frequency': frequency.name,
@@ -252,21 +288,6 @@ class RecurrenceRule {
         'endCondition': endCondition?.toJson(),
       };
 
-  factory RecurrenceRule.fromJson(Map<String, dynamic> json) {
-    return RecurrenceRule(
-      frequency: RecurrenceFrequency.values.firstWhere(
-        (e) => e.name == json['frequency'],
-      ),
-      interval: json['interval'] ?? 1,
-      byWeekDay: json['byWeekDay']?.cast<int>(),
-      byMonthDay: json['byMonthDay']?.cast<int>(),
-      byMonth: json['byMonth']?.cast<int>(),
-      endCondition: json['endCondition'] != null
-          ? RecurrenceEnd.fromJson(json['endCondition'])
-          : null,
-    );
-  }
-
   RecurrenceRule copyWith({
     RecurrenceFrequency? frequency,
     int? interval,
@@ -274,16 +295,15 @@ class RecurrenceRule {
     List<int>? byMonthDay,
     List<int>? byMonth,
     RecurrenceEnd? endCondition,
-  }) {
-    return RecurrenceRule(
-      frequency: frequency ?? this.frequency,
-      interval: interval ?? this.interval,
-      byWeekDay: byWeekDay ?? this.byWeekDay,
-      byMonthDay: byMonthDay ?? this.byMonthDay,
-      byMonth: byMonth ?? this.byMonth,
-      endCondition: endCondition ?? this.endCondition,
-    );
-  }
+  }) =>
+      RecurrenceRule(
+        frequency: frequency ?? this.frequency,
+        interval: interval ?? this.interval,
+        byWeekDay: byWeekDay ?? this.byWeekDay,
+        byMonthDay: byMonthDay ?? this.byMonthDay,
+        byMonth: byMonth ?? this.byMonth,
+        endCondition: endCondition ?? this.endCondition,
+      );
 
   @override
   String toString() {
@@ -315,7 +335,9 @@ class RecurrenceRule {
   }
 
   String _formatWeekDays() {
-    if (byWeekDay == null || byWeekDay!.isEmpty) return '';
+    if (byWeekDay == null || byWeekDay!.isEmpty) {
+      return '';
+    }
 
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return byWeekDay!.map((day) => dayNames[day - 1]).join(', ');

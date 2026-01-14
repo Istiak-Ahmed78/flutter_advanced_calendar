@@ -5,17 +5,6 @@ import '../themes/calendar_theme.dart';
 
 /// Header widget for calendar navigation
 class CalendarHeader extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarTheme? theme;
-  final VoidCallback? onPreviousTap;
-  final VoidCallback? onNextTap;
-  final VoidCallback? onTodayTap;
-  final VoidCallback? onTitleTap;
-  final bool showTodayButton;
-  final bool showViewSwitcher;
-  final String? customTitle;
-  final bool enableMonthYearPicker;
-
   const CalendarHeader({
     super.key,
     required this.controller,
@@ -29,6 +18,16 @@ class CalendarHeader extends StatelessWidget {
     this.customTitle,
     this.enableMonthYearPicker = true,
   });
+  final CalendarController controller;
+  final CalendarTheme? theme;
+  final VoidCallback? onPreviousTap;
+  final VoidCallback? onNextTap;
+  final VoidCallback? onTodayTap;
+  final VoidCallback? onTitleTap;
+  final bool showTodayButton;
+  final bool showViewSwitcher;
+  final String? customTitle;
+  final bool enableMonthYearPicker;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +41,7 @@ class CalendarHeader extends StatelessWidget {
         color: calendarTheme.headerBackgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -56,7 +55,7 @@ class CalendarHeader extends StatelessWidget {
               Icons.chevron_left,
               color: calendarTheme.headerTextColor,
             ),
-            onPressed: onPreviousTap ?? () => controller.navigatePrevious(),
+            onPressed: onPreviousTap ?? controller.navigatePrevious,
             tooltip: 'Previous',
             padding: EdgeInsets.zero, // ✅ REMOVED PADDING
             constraints: const BoxConstraints(
@@ -107,7 +106,7 @@ class CalendarHeader extends StatelessWidget {
               Icons.chevron_right,
               color: calendarTheme.headerTextColor,
             ),
-            onPressed: onNextTap ?? () => controller.navigateNext(),
+            onPressed: onNextTap ?? controller.navigateNext,
             tooltip: 'Next',
             padding: EdgeInsets.zero, // ✅ REMOVED PADDING
             constraints: const BoxConstraints(
@@ -118,7 +117,7 @@ class CalendarHeader extends StatelessWidget {
           if (showTodayButton) ...[
             const SizedBox(width: 4), // ✅ REDUCED FROM 8
             TextButton(
-              onPressed: onTodayTap ?? () => controller.jumpToToday(),
+              onPressed: onTodayTap ?? controller.jumpToToday,
               style: TextButton.styleFrom(
                 foregroundColor: calendarTheme.headerTextColor,
                 padding: const EdgeInsets.symmetric(
@@ -145,7 +144,7 @@ class CalendarHeader extends StatelessWidget {
               ),
               tooltip: 'Change view',
               padding: EdgeInsets.zero, // ✅ REMOVED PADDING
-              onSelected: (view) => controller.setView(view),
+              onSelected: controller.setView,
               itemBuilder: (context) => [
                 _buildViewMenuItem(
                   CalendarView.month,
@@ -276,15 +275,14 @@ class CalendarHeader extends StatelessWidget {
 
 /// Issue #4: Month and Year Picker Dialog
 class _MonthYearPickerDialog extends StatefulWidget {
-  final int initialMonth;
-  final int initialYear;
-  final CalendarTheme theme;
-
   const _MonthYearPickerDialog({
     required this.initialMonth,
     required this.initialYear,
     required this.theme,
   });
+  final int initialMonth;
+  final int initialYear;
+  final CalendarTheme theme;
 
   @override
   State<_MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
@@ -302,134 +300,133 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        width: 320,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Title
-            Text(
-              'Select Month & Year',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: widget.theme.headerTextColor,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Year selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () {
-                    setState(() {
-                      selectedYear--;
-                    });
-                  },
+  Widget build(BuildContext context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          width: 320,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Title
+              Text(
+                'Select Month & Year',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: widget.theme.headerTextColor,
                 ),
-                Text(
-                  '$selectedYear',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 20),
+
+              // Year selector
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () {
+                      setState(() {
+                        selectedYear--;
+                      });
+                    },
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: () {
-                    setState(() {
-                      selectedYear++;
-                    });
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Month grid
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: 12,
-              itemBuilder: (context, index) {
-                final month = index + 1;
-                final isSelected = month == selectedMonth;
-
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedMonth = month;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? widget.theme.selectedDayBackgroundColor
-                          : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
+                  Text(
+                    '$selectedYear',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Center(
-                      child: Text(
-                        _getMonthShortName(month),
-                        style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected
-                              ? widget.theme.selectedDayTextColor
-                              : Colors.black87,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () {
+                      setState(() {
+                        selectedYear++;
+                      });
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Month grid
+              GridView.builder(
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: 12,
+                itemBuilder: (context, index) {
+                  final month = index + 1;
+                  final isSelected = month == selectedMonth;
+
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedMonth = month;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? widget.theme.selectedDayBackgroundColor
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _getMonthShortName(month),
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? widget.theme.selectedDayTextColor
+                                : Colors.black87,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop({
-                      'month': selectedMonth,
-                      'year': selectedYear,
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: widget.theme.headerBackgroundColor,
+              // Action buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
                   ),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop({
+                        'month': selectedMonth,
+                        'year': selectedYear,
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.theme.headerBackgroundColor,
+                    ),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   String _getMonthShortName(int month) {
     const months = [

@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
+
 import '../core/controllers/calendar_controller.dart';
 import '../core/models/calendar_config.dart';
+import '../core/utils/date_utils.dart' as calendar_utils;
 import '../themes/calendar_theme.dart';
 import '../widgets/day_cell.dart';
-import '../core/utils/date_utils.dart' as calendar_utils;
 
 /// Month view displaying a full calendar grid
 class MonthView extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(DateTime)? onDaySelected;
-  final Function(DateTime)? onDayLongPressed;
-  final DateTime? displayDate;
-
   const MonthView({
-    Key? key,
+    super.key,
     required this.controller,
     required this.config,
     required this.theme,
     this.onDaySelected,
     this.onDayLongPressed,
     this.displayDate,
-  }) : super(key: key);
-
+  });
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(DateTime)? onDaySelected;
+  final void Function(DateTime)? onDayLongPressed;
+  final DateTime? displayDate;
   DateTime get _effectiveDate => displayDate ?? controller.focusedDay;
 
   @override
@@ -65,21 +64,21 @@ class MonthView extends StatelessWidget {
         ),
       ),
       child: Row(
-        children: weekdays.map((weekday) {
-          return Expanded(
-            child: Center(
-              child: Text(
-                weekday,
-                style: theme.weekdayTextStyle ??
-                    TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: theme.weekdayTextColor,
+        children: weekdays
+            .map((weekday) => Expanded(
+                  child: Center(
+                    child: Text(
+                      weekday,
+                      style: theme.weekdayTextStyle ??
+                          TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.weekdayTextColor,
+                          ),
                     ),
-              ),
-            ),
-          );
-        }).toList(),
+                  ),
+                ))
+            .toList(),
       ),
     );
   }
@@ -90,18 +89,18 @@ class MonthView extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: weeks.map((week) {
-        return SizedBox(
-          height: theme.dayCellHeight,
-          child: Row(
-            children: week.map((day) {
-              return Expanded(
-                child: _buildDayCell(day),
-              );
-            }).toList(),
-          ),
-        );
-      }).toList(),
+      children: weeks
+          .map((week) => SizedBox(
+                height: theme.dayCellHeight,
+                child: Row(
+                  children: week
+                      .map((day) => Expanded(
+                            child: _buildDayCell(day),
+                          ))
+                      .toList(),
+                ),
+              ))
+          .toList(),
     );
   }
 
@@ -176,14 +175,14 @@ class MonthView extends StatelessWidget {
       return allDays;
     }
 
-    return allDays.where((day) {
-      return day.weekday != DateTime.saturday && day.weekday != DateTime.sunday;
-    }).toList();
+    return allDays
+        .where((day) =>
+            day.weekday != DateTime.saturday && day.weekday != DateTime.sunday)
+        .toList();
   }
 
-  bool _isInDisplayMonth(DateTime day) {
-    return calendar_utils.isSameMonth(day, _effectiveDate);
-  }
+  bool _isInDisplayMonth(DateTime day) =>
+      calendar_utils.isSameMonth(day, _effectiveDate);
 
   List<List<DateTime>> _groupIntoWeeks(List<DateTime> days) {
     final weeks = <List<DateTime>>[];

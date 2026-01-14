@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_calendar/flutter_advanced_calendar.dart';
 
 class EnhancedCalendarExample extends StatefulWidget {
-  const EnhancedCalendarExample({Key? key}) : super(key: key);
+  const EnhancedCalendarExample({super.key});
 
   @override
   State<EnhancedCalendarExample> createState() =>
@@ -209,7 +209,7 @@ class _EnhancedCalendarExampleState extends State<EnhancedCalendarExample> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: event.color.withOpacity(0.1),
+                    color: event.color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -443,7 +443,7 @@ class _EnhancedCalendarExampleState extends State<EnhancedCalendarExample> {
                               height: 32,
                               decoration: BoxDecoration(
                                 color: selectedIcon == icon
-                                    ? selectedColor.withOpacity(0.2)
+                                    ? selectedColor.withValues(alpha: 0.2)
                                     : Colors.grey.shade200,
                                 shape: BoxShape.circle,
                               ),
@@ -692,7 +692,7 @@ class _EnhancedCalendarExampleState extends State<EnhancedCalendarExample> {
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
                               color: selectedIcon == icon
-                                  ? selectedColor.withOpacity(0.2)
+                                  ? selectedColor.withValues(alpha: 0.2)
                                   : Colors.grey.shade200,
                               shape: BoxShape.circle,
                             ),
@@ -821,7 +821,7 @@ Future<DateTimeRange?> _showDateRangePicker(
     builder: (context, child) {
       return Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.light(
+          colorScheme: const ColorScheme.light(
             primary: Colors.blue,
             onPrimary: Colors.white,
             surface: Colors.white,

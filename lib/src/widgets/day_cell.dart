@@ -1,28 +1,13 @@
 import 'package:flutter/material.dart';
-import '../core/models/calendar_event.dart';
-import '../core/models/calendar_config.dart';
+
 import '../core/controllers/calendar_controller.dart';
+import '../core/models/calendar_config.dart';
+import '../core/models/calendar_event.dart';
 import '../themes/calendar_theme.dart';
 import 'event_card.dart';
 
 /// Widget for displaying a single day cell in the calendar
 class DayCell extends StatelessWidget {
-  final DateTime date;
-  final CalendarController controller;
-  final CalendarTheme? theme;
-  final CalendarConfig? config;
-  final List<CalendarEvent> events;
-  final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
-  final bool showEvents;
-  final int maxVisibleEvents;
-  final bool isOutsideMonth;
-  final bool isToday;
-  final bool isHoliday;
-  final String? holidayName;
-  final bool showEventDots;
-  final int maxEventDots;
-
   const DayCell({
     super.key,
     required this.date,
@@ -41,6 +26,21 @@ class DayCell extends StatelessWidget {
     this.showEventDots = true,
     this.maxEventDots = 3,
   });
+  final DateTime date;
+  final CalendarController controller;
+  final CalendarTheme? theme;
+  final CalendarConfig? config;
+  final List<CalendarEvent> events;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool showEvents;
+  final int maxVisibleEvents;
+  final bool isOutsideMonth;
+  final bool isToday;
+  final bool isHoliday;
+  final String? holidayName;
+  final bool showEventDots;
+  final int maxEventDots;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,6 @@ class DayCell extends StatelessWidget {
           ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             // Day number
             Padding(
@@ -135,7 +134,9 @@ class DayCell extends StatelessWidget {
 
   /// Build event dots with individual colors
   Widget _buildEventDots(CalendarTheme theme) {
-    if (events.isEmpty) return const SizedBox.shrink();
+    if (events.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     final visibleEvents = events.take(maxEventDots).toList();
     final hasMore = events.length > maxEventDots;
@@ -149,16 +150,17 @@ class DayCell extends StatelessWidget {
           spacing: theme.eventIndicatorSpacing,
           runSpacing: theme.eventIndicatorSpacing,
           alignment: WrapAlignment.center,
-          children: visibleEvents.map((event) {
-            return Container(
-              width: theme.eventIndicatorSize,
-              height: theme.eventIndicatorSize,
-              decoration: BoxDecoration(
-                color: event.effectiveDotColor, // Use individual dot color
-                shape: BoxShape.circle,
-              ),
-            );
-          }).toList(),
+          children: visibleEvents
+              .map((event) => Container(
+                    width: theme.eventIndicatorSize,
+                    height: theme.eventIndicatorSize,
+                    decoration: BoxDecoration(
+                      color:
+                          event.effectiveDotColor, // Use individual dot color
+                      shape: BoxShape.circle,
+                    ),
+                  ))
+              .toList(),
         ),
 
         // "+X more" indicator
@@ -168,7 +170,7 @@ class DayCell extends StatelessWidget {
             '+${events.length - maxEventDots}',
             style: TextStyle(
               fontSize: 8,
-              color: theme.dayTextColor.withOpacity(0.6),
+              color: theme.dayTextColor.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -179,7 +181,9 @@ class DayCell extends StatelessWidget {
 
   /// Build event list (legacy mode)
   Widget _buildEventList(CalendarTheme theme) {
-    if (events.isEmpty) return const SizedBox.shrink();
+    if (events.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     final visibleEvents = events.take(maxVisibleEvents).toList();
     final hasMore = events.length > maxVisibleEvents;
@@ -188,15 +192,13 @@ class DayCell extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Event indicators
-        ...visibleEvents.map((event) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-            child: EventIndicator(
-              color: event.color,
-              size: theme.eventIndicatorSize,
-            ),
-          );
-        }),
+        ...visibleEvents.map((event) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+              child: EventIndicator(
+                color: event.color,
+                size: theme.eventIndicatorSize,
+              ),
+            )),
 
         // "+X more" indicator
         if (hasMore) ...[
@@ -205,7 +207,7 @@ class DayCell extends StatelessWidget {
             '+${events.length - maxVisibleEvents}',
             style: TextStyle(
               fontSize: 9,
-              color: theme.dayTextColor.withOpacity(0.6),
+              color: theme.dayTextColor.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -223,11 +225,21 @@ class DayCell extends StatelessWidget {
     required bool isRangeEnd,
     required bool isHoliday,
   }) {
-    if (isSelected) return theme.selectedDayBackgroundColor;
-    if (isRangeStart) return theme.rangeStartBackgroundColor;
-    if (isRangeEnd) return theme.rangeEndBackgroundColor;
-    if (isInRange) return theme.rangeMiddleBackgroundColor;
-    if (isToday) return theme.todayBackgroundColor;
+    if (isSelected) {
+      return theme.selectedDayBackgroundColor;
+    }
+    if (isRangeStart) {
+      return theme.rangeStartBackgroundColor;
+    }
+    if (isRangeEnd) {
+      return theme.rangeEndBackgroundColor;
+    }
+    if (isInRange) {
+      return theme.rangeMiddleBackgroundColor;
+    }
+    if (isToday) {
+      return theme.todayBackgroundColor;
+    }
     if (isHoliday && config?.showHolidays == true) {
       return theme.holidayBackgroundColor;
     }

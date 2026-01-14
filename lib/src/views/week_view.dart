@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
+
 import '../core/controllers/calendar_controller.dart';
 import '../core/models/calendar_config.dart';
 import '../core/models/calendar_event.dart';
-import '../themes/calendar_theme.dart';
 import '../core/utils/date_utils.dart' as date_utils;
+import '../themes/calendar_theme.dart';
 
 class WeekView extends StatefulWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(DateTime)? onDaySelected;
-  final Function(CalendarEvent)? onEventTap;
-
   const WeekView({
-    Key? key,
+    super.key,
     required this.controller,
     required this.config,
     required this.theme,
     this.onDaySelected,
     this.onEventTap,
-  }) : super(key: key);
+  });
+
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(DateTime)? onDaySelected;
+  final void Function(CalendarEvent)? onEventTap;
 
   @override
   State<WeekView> createState() => _WeekViewState();
@@ -64,7 +65,9 @@ class _WeekViewState extends State<WeekView> {
 
   // ✅ NEW: Sync PageView when controller changes
   void _onControllerChanged() {
-    if (_isPageChanging) return;
+    if (_isPageChanging) {
+      return;
+    }
 
     final targetPage = _getPageForDate(widget.controller.focusedDay);
     if (_pageController.hasClients &&
@@ -94,41 +97,38 @@ class _WeekViewState extends State<WeekView> {
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
-    _scrollController.removeListener(_syncScrollControllers);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_syncScrollControllers)
+      ..dispose();
     _timeScrollController.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildWeekHeader(),
-        Expanded(
-          child: _buildWeekPageView(), // ✅ UPDATED: Use PageView
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Column(
+        children: [
+          _buildWeekHeader(),
+          Expanded(
+            child: _buildWeekPageView(), // ✅ UPDATED: Use PageView
+          ),
+        ],
+      );
 
   // ✅ NEW: Build PageView for week navigation
-  Widget _buildWeekPageView() {
-    return PageView.builder(
-      controller: _pageController,
-      onPageChanged: (page) {
-        _isPageChanging = true;
-        final newDate = _getDateForPage(page);
-        widget.controller.jumpToDate(newDate);
-        _isPageChanging = false;
-      },
-      itemBuilder: (context, index) {
-        final displayDate = _getDateForPage(index);
-        return _buildWeekContentForDate(displayDate);
-      },
-    );
-  }
+  Widget _buildWeekPageView() => PageView.builder(
+        controller: _pageController,
+        onPageChanged: (page) {
+          _isPageChanging = true;
+          final newDate = _getDateForPage(page);
+          widget.controller.jumpToDate(newDate);
+          _isPageChanging = false;
+        },
+        itemBuilder: (context, index) {
+          final displayDate = _getDateForPage(index);
+          return _buildWeekContentForDate(displayDate);
+        },
+      );
 
   // ✅ NEW: Build week content for a specific date
   Widget _buildWeekContentForDate(DateTime date) {
@@ -154,11 +154,11 @@ class _WeekViewState extends State<WeekView> {
             child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: weekDays.map((day) {
-                  return Expanded(
-                    child: _buildDayColumn(day),
-                  );
-                }).toList(),
+                children: weekDays
+                    .map((day) => Expanded(
+                          child: _buildDayColumn(day),
+                        ))
+                    .toList(),
               ),
             ),
           ),
@@ -262,32 +262,30 @@ class _WeekViewState extends State<WeekView> {
     return widget.theme.dayTextColor;
   }
 
-  Widget _buildTimeColumn() {
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.theme.weekdayBackgroundColor,
-        border: Border(
-          right: BorderSide(color: widget.theme.borderColor),
+  Widget _buildTimeColumn() => Container(
+        decoration: BoxDecoration(
+          color: widget.theme.weekdayBackgroundColor,
+          border: Border(
+            right: BorderSide(color: widget.theme.borderColor),
+          ),
         ),
-      ),
-      child: Column(
-        children: List.generate(24, (hour) {
-          return Container(
-            height: 60,
-            alignment: Alignment.topCenter,
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _formatHour(hour),
-              style: TextStyle(
-                fontSize: 10,
-                color: widget.theme.weekdayTextColor,
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
+        child: Column(
+          children: List.generate(
+              24,
+              (hour) => Container(
+                    height: 60,
+                    alignment: Alignment.topCenter,
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      _formatHour(hour),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: widget.theme.weekdayTextColor,
+                      ),
+                    ),
+                  )),
+        ),
+      );
 
   Widget _buildDayColumn(DateTime day) {
     final events = widget.controller.getEventsForDay(day);
@@ -296,28 +294,30 @@ class _WeekViewState extends State<WeekView> {
     return Container(
       decoration: BoxDecoration(
         color: isHoliday && widget.config.showHolidays
-            ? widget.theme.holidayBackgroundColor.withOpacity(0.1)
+            ? widget.theme.holidayBackgroundColor.withValues(alpha: 0.1)
             : null,
         border: Border(
-          right: BorderSide(color: widget.theme.borderColor.withOpacity(0.3)),
+          right: BorderSide(
+              color: widget.theme.borderColor.withValues(alpha: 0.3)),
         ),
       ),
       child: Stack(
         children: [
           // Hour lines
           Column(
-            children: List.generate(24, (hour) {
-              return Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: widget.theme.borderColor.withOpacity(0.2),
-                    ),
-                  ),
-                ),
-              );
-            }),
+            children: List.generate(
+                24,
+                (hour) => Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color:
+                                widget.theme.borderColor.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                    )),
           ),
           // Current time indicator
           if (date_utils.isSameDay(day, DateTime.now()))
@@ -374,9 +374,9 @@ class _WeekViewState extends State<WeekView> {
           padding: const EdgeInsets.symmetric(
               horizontal: 4, vertical: 2), // ✅ Reduced padding
           decoration: BoxDecoration(
-            color: event.color.withOpacity(0.8),
+            color: event.color.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: event.color, width: 1),
+            border: Border.all(color: event.color),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,7 +401,8 @@ class _WeekViewState extends State<WeekView> {
                   child: Text(
                     '${_formatEventTime(event.startDate)} - ${_formatEventTime(event.endDate)}',
                     style: TextStyle(
-                      color: (event.textColor ?? Colors.white).withOpacity(0.8),
+                      color: (event.textColor ?? Colors.white)
+                          .withValues(alpha: 0.8),
                       fontSize: 9,
                     ),
                     maxLines: 1,
@@ -437,9 +438,10 @@ class _WeekViewState extends State<WeekView> {
       return allDays;
     }
 
-    return allDays.where((day) {
-      return day.weekday != DateTime.saturday && day.weekday != DateTime.sunday;
-    }).toList();
+    return allDays
+        .where((day) =>
+            day.weekday != DateTime.saturday && day.weekday != DateTime.sunday)
+        .toList();
   }
 
   // ✅ NEW: Get week days for a specific date
@@ -453,9 +455,10 @@ class _WeekViewState extends State<WeekView> {
       return allDays;
     }
 
-    return allDays.where((day) {
-      return day.weekday != DateTime.saturday && day.weekday != DateTime.sunday;
-    }).toList();
+    return allDays
+        .where((day) =>
+            day.weekday != DateTime.saturday && day.weekday != DateTime.sunday)
+        .toList();
   }
 
   String _getWeekdayName(int weekday) {
@@ -467,9 +470,15 @@ class _WeekViewState extends State<WeekView> {
     if (widget.config.show24HourFormat) {
       return '${hour.toString().padLeft(2, '0')}:00';
     } else {
-      if (hour == 0) return '12 AM';
-      if (hour < 12) return '$hour AM';
-      if (hour == 12) return '12 PM';
+      if (hour == 0) {
+        return '12 AM';
+      }
+      if (hour < 12) {
+        return '$hour AM';
+      }
+      if (hour == 12) {
+        return '12 PM';
+      }
       return '${hour - 12} PM';
     }
   }
