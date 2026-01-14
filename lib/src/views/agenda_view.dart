@@ -7,12 +7,6 @@ import '../widgets/event_card.dart';
 
 /// Agenda view displaying events in a list grouped by date
 class AgendaView extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(CalendarEvent)? onEventTap;
-  final int daysToShow;
-
   const AgendaView({
     super.key,
     required this.controller,
@@ -21,6 +15,12 @@ class AgendaView extends StatelessWidget {
     this.onEventTap,
     this.daysToShow = 30,
   });
+
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(CalendarEvent)? onEventTap;
+  final int daysToShow;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +147,6 @@ class AgendaView extends StatelessWidget {
               child: EventCard(
                 event: event,
                 theme: theme,
-                compact: false,
                 showTime: config.showEventTime,
                 showLocation: config.showEventLocation,
                 showIcon: config.showEventIcon,

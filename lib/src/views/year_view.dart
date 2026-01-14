@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../core/controllers/calendar_controller.dart';
 import '../core/models/calendar_config.dart';
-import '../themes/calendar_theme.dart';
 import '../core/utils/date_utils.dart' as calendar_utils;
+import '../themes/calendar_theme.dart';
 
 /// Year view displaying 12 months
 class YearView extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(DateTime)? onMonthTap;
-
   const YearView({
     super.key,
     required this.controller,
@@ -19,25 +15,25 @@ class YearView extends StatelessWidget {
     this.onMonthTap,
   });
 
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(DateTime)? onMonthTap;
   @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: 12,
-      itemBuilder: (context, index) {
-        return _buildMonthCard(index + 1);
-      },
-    );
-  }
+  Widget build(BuildContext context) => GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: 0.8,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: 12,
+        itemBuilder: (context, index) => _buildMonthCard(index + 1),
+      );
 
   Widget _buildMonthCard(int month) {
-    final monthDate = DateTime(controller.focusedDay.year, month, 1);
+    final monthDate = DateTime(controller.focusedDay.year, month);
     final isCurrentMonth = controller.focusedDay.month == month;
 
     return InkWell(
@@ -98,7 +94,7 @@ class YearView extends StatelessWidget {
 
   Widget _buildMiniCalendar(DateTime month) {
     final daysInMonth = calendar_utils.getDaysInMonth(month);
-    final firstDayOfMonth = DateTime(month.year, month.month, 1);
+    final firstDayOfMonth = DateTime(month.year, month.month);
     final startWeekday = firstDayOfMonth.weekday;
 
     return Padding(
@@ -107,7 +103,6 @@ class YearView extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 7,
-          childAspectRatio: 1,
         ),
         itemCount: daysInMonth + startWeekday - 1,
         itemBuilder: (context, index) {

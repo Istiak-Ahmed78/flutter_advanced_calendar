@@ -2,9 +2,8 @@
 library date_utils;
 
 /// Check if two dates are the same day
-bool isSameDay(DateTime a, DateTime b) {
-  return a.year == b.year && a.month == b.month && a.day == b.day;
-}
+bool isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
 
 /// Check if two dates are in the same week
 bool isSameWeek(DateTime a, DateTime b, int weekStartDay) {
@@ -14,9 +13,8 @@ bool isSameWeek(DateTime a, DateTime b, int weekStartDay) {
 }
 
 /// Check if two dates are in the same month
-bool isSameMonth(DateTime a, DateTime b) {
-  return a.year == b.year && a.month == b.month;
-}
+bool isSameMonth(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month;
 
 /// Get the start of the week for a given date
 DateTime getStartOfWeek(DateTime date, int weekStartDay) {
@@ -42,19 +40,13 @@ List<DateTime> getWeekDays(DateTime date, int weekStartDay) {
 }
 
 /// Get the start of the month
-DateTime getStartOfMonth(DateTime date) {
-  return DateTime(date.year, date.month, 1);
-}
+DateTime getStartOfMonth(DateTime date) => DateTime(date.year, date.month);
 
 /// Get the end of the month
-DateTime getEndOfMonth(DateTime date) {
-  return DateTime(date.year, date.month + 1, 0);
-}
+DateTime getEndOfMonth(DateTime date) => DateTime(date.year, date.month + 1, 0);
 
 /// Get the number of days in a month
-int getDaysInMonth(DateTime date) {
-  return DateTime(date.year, date.month + 1, 0).day;
-}
+int getDaysInMonth(DateTime date) => DateTime(date.year, date.month + 1, 0).day;
 
 /// Get all days in a month
 List<DateTime> getDaysInMonthList(DateTime date) {
@@ -75,7 +67,7 @@ List<DateTime> getVisibleDays(DateTime month, int weekStartDay,
   final endOfCalendar = getEndOfWeek(lastDayOfMonth, weekStartDay);
 
   final days = <DateTime>[];
-  DateTime current = startOfCalendar;
+  var current = startOfCalendar;
 
   while (!current.isAfter(endOfCalendar)) {
     if (!hideWeekends ||
@@ -91,7 +83,7 @@ List<DateTime> getVisibleDays(DateTime month, int weekStartDay,
 
 /// Get week number in year
 int getWeekNumber(DateTime date) {
-  final firstDayOfYear = DateTime(date.year, 1, 1);
+  final firstDayOfYear = DateTime(date.year);
   final daysSinceFirstDay = date.difference(firstDayOfYear).inDays;
   return ((daysSinceFirstDay + firstDayOfYear.weekday) / 7).ceil();
 }
@@ -115,14 +107,13 @@ bool isFuture(DateTime date) {
 }
 
 /// Check if date is weekend
-bool isWeekend(DateTime date) {
-  return date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
-}
+bool isWeekend(DateTime date) =>
+    date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
 
 /// Get date range between two dates
 List<DateTime> getDateRange(DateTime start, DateTime end) {
   final days = <DateTime>[];
-  DateTime current = DateTime(start.year, start.month, start.day);
+  var current = DateTime(start.year, start.month, start.day);
   final endDate = DateTime(end.year, end.month, end.day);
 
   while (!current.isAfter(endDate)) {
@@ -135,8 +126,8 @@ List<DateTime> getDateRange(DateTime start, DateTime end) {
 
 /// Add months to a date
 DateTime addMonths(DateTime date, int months) {
-  int newYear = date.year;
-  int newMonth = date.month + months;
+  var newYear = date.year;
+  var newMonth = date.month + months;
 
   while (newMonth > 12) {
     newMonth -= 12;
@@ -156,25 +147,21 @@ DateTime addMonths(DateTime date, int months) {
 }
 
 /// Copy time from one DateTime to another
-DateTime copyTimeToDate(DateTime date, DateTime time) {
-  return DateTime(
-    date.year,
-    date.month,
-    date.day,
-    time.hour,
-    time.minute,
-    time.second,
-    time.millisecond,
-    time.microsecond,
-  );
-}
+DateTime copyTimeToDate(DateTime date, DateTime time) => DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+      time.second,
+      time.millisecond,
+      time.microsecond,
+    );
 
 /// Get DateTime at start of day (00:00:00)
-DateTime getStartOfDay(DateTime date) {
-  return DateTime(date.year, date.month, date.day);
-}
+DateTime getStartOfDay(DateTime date) =>
+    DateTime(date.year, date.month, date.day);
 
 /// Get DateTime at end of day (23:59:59)
-DateTime getEndOfDay(DateTime date) {
-  return DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
-}
+DateTime getEndOfDay(DateTime date) =>
+    DateTime(date.year, date.month, date.day, 23, 59, 59, 999);

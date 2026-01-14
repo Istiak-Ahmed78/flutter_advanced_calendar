@@ -6,12 +6,6 @@ import '../themes/calendar_theme.dart';
 
 /// Day view showing hourly time slots for a single day
 class DayView extends StatelessWidget {
-  final CalendarController controller;
-  final CalendarConfig config;
-  final CalendarTheme theme;
-  final Function(CalendarEvent)? onEventTap;
-  final Function(DateTime)? onTimeSlotTap;
-
   const DayView({
     super.key,
     required this.controller,
@@ -21,6 +15,11 @@ class DayView extends StatelessWidget {
     this.onTimeSlotTap,
   });
 
+  final CalendarController controller;
+  final CalendarConfig config;
+  final CalendarTheme theme;
+  final void Function(CalendarEvent)? onEventTap;
+  final void Function(DateTime)? onTimeSlotTap;
   @override
   Widget build(BuildContext context) {
     final events = controller.getEventsForDay(controller.focusedDay);
@@ -91,64 +90,62 @@ class DayView extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeSlot(int hour, double hourHeight) {
-    return Container(
-      height: hourHeight,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: theme.borderColor.withValues(alpha: 0.3),
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Time label
-          SizedBox(
-            width: 60,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 8, top: 4),
-              child: Text(
-                _formatHour(hour),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.weekdayTextColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.right,
-              ),
+  Widget _buildTimeSlot(int hour, double hourHeight) => Container(
+        height: hourHeight,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: theme.borderColor.withValues(alpha: 0.3),
+              width: 0.5,
             ),
           ),
-          // Time slot area
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                final timeSlot = DateTime(
-                  controller.focusedDay.year,
-                  controller.focusedDay.month,
-                  controller.focusedDay.day,
-                  hour,
-                );
-                onTimeSlotTap?.call(timeSlot);
-              },
-              child: Container(
-                height: hourHeight,
-                decoration: BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      color: theme.borderColor.withValues(alpha: 0.3),
-                      width: 0.5,
+        ),
+        child: Row(
+          children: [
+            // Time label
+            SizedBox(
+              width: 60,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8, top: 4),
+                child: Text(
+                  _formatHour(hour),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.weekdayTextColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ),
+            // Time slot area
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  final timeSlot = DateTime(
+                    controller.focusedDay.year,
+                    controller.focusedDay.month,
+                    controller.focusedDay.day,
+                    hour,
+                  );
+                  onTimeSlotTap?.call(timeSlot);
+                },
+                child: Container(
+                  height: hourHeight,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: theme.borderColor.withValues(alpha: 0.3),
+                        width: 0.5,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Widget _buildEventWidget(
       CalendarEvent event, double hourHeight, int startHour) {
@@ -310,9 +307,15 @@ class DayView extends StatelessWidget {
     if (config.show24HourFormat) {
       return '${hour.toString().padLeft(2, '0')}:00';
     } else {
-      if (hour == 0) return '12 AM';
-      if (hour < 12) return '$hour AM';
-      if (hour == 12) return '12 PM';
+      if (hour == 0) {
+        return '12 AM';
+      }
+      if (hour < 12) {
+        return '$hour AM';
+      }
+      if (hour == 12) {
+        return '12 PM';
+      }
       return '${hour - 12} PM';
     }
   }
@@ -324,9 +327,15 @@ class DayView extends StatelessWidget {
       final hour = time.hour;
       final minute = time.minute.toString().padLeft(2, '0');
 
-      if (hour == 0) return '12:$minute AM';
-      if (hour < 12) return '$hour:$minute AM';
-      if (hour == 12) return '12:$minute PM';
+      if (hour == 0) {
+        return '12:$minute AM';
+      }
+      if (hour < 12) {
+        return '$hour:$minute AM';
+      }
+      if (hour == 12) {
+        return '12:$minute PM';
+      }
       return '${hour - 12}:$minute PM';
     }
   }

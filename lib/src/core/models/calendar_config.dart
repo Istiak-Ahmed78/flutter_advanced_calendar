@@ -3,6 +3,37 @@ import 'enums.dart';
 
 /// Configuration for calendar behavior and appearance
 class CalendarConfig {
+  // NEW: Holiday names
+
+  const CalendarConfig({
+    this.initialView = CalendarView.month,
+    this.showWeekNumbers = false,
+    this.weekStartDay = WeekStartDay.monday,
+    this.minDate,
+    this.maxDate,
+    this.enableRangeSelection = false,
+    this.enableMultiDayEvents = true,
+    this.hideWeekends = false,
+    this.showHolidays = true,
+    this.enableVerticalScroll = false,
+    this.allowSameDayRange = true,
+    this.enableSwipeNavigation = true,
+    this.enableDragAndDrop = false,
+    this.show24HourFormat = true,
+    this.showEventTime = true,
+    this.showEventLocation = false,
+    this.showEventIcon = true,
+    this.maxEventsPerDay = 3,
+    this.compactMode = false,
+    this.showEventDots = true, // NEW
+    this.maxEventDotsPerDay = 3, // NEW
+    this.enableLongPress = true,
+    this.enableDoubleTap = false,
+    this.animationDuration = const Duration(milliseconds: 300),
+    this.locale,
+    this.holidays = const [], // NEW
+    this.holidayNames = const {}, // NEW
+  });
   // View settings
   final CalendarView initialView;
   final bool showWeekNumbers;
@@ -43,45 +74,13 @@ class CalendarConfig {
 
   // Holiday settings
   final List<DateTime> holidays; // NEW: List of holiday dates
-  final Map<DateTime, String> holidayNames; // NEW: Holiday names
-
-  const CalendarConfig({
-    this.initialView = CalendarView.month,
-    this.showWeekNumbers = false,
-    this.weekStartDay = WeekStartDay.monday,
-    this.minDate,
-    this.maxDate,
-    this.enableRangeSelection = false,
-    this.enableMultiDayEvents = true,
-    this.hideWeekends = false,
-    this.showHolidays = true,
-    this.enableVerticalScroll = false,
-    this.allowSameDayRange = true,
-    this.enableSwipeNavigation = true,
-    this.enableDragAndDrop = false,
-    this.show24HourFormat = true,
-    this.showEventTime = true,
-    this.showEventLocation = false,
-    this.showEventIcon = true,
-    this.maxEventsPerDay = 3,
-    this.compactMode = false,
-    this.showEventDots = true, // NEW
-    this.maxEventDotsPerDay = 3, // NEW
-    this.enableLongPress = true,
-    this.enableDoubleTap = false,
-    this.animationDuration = const Duration(milliseconds: 300),
-    this.locale,
-    this.holidays = const [], // NEW
-    this.holidayNames = const {}, // NEW
-  });
+  final Map<DateTime, String> holidayNames;
 
   /// Check if a date is a holiday
-  bool isHoliday(DateTime date) {
-    return holidays.any((holiday) =>
-        holiday.year == date.year &&
-        holiday.month == date.month &&
-        holiday.day == date.day);
-  }
+  bool isHoliday(DateTime date) => holidays.any((holiday) =>
+      holiday.year == date.year &&
+      holiday.month == date.month &&
+      holiday.day == date.day);
 
   /// Get holiday name for a date
   String? getHolidayName(DateTime date) {
@@ -123,36 +122,35 @@ class CalendarConfig {
     Locale? locale,
     List<DateTime>? holidays,
     Map<DateTime, String>? holidayNames,
-  }) {
-    return CalendarConfig(
-      initialView: initialView ?? this.initialView,
-      showWeekNumbers: showWeekNumbers ?? this.showWeekNumbers,
-      weekStartDay: weekStartDay ?? this.weekStartDay,
-      minDate: minDate ?? this.minDate,
-      maxDate: maxDate ?? this.maxDate,
-      enableRangeSelection: enableRangeSelection ?? this.enableRangeSelection,
-      enableMultiDayEvents: enableMultiDayEvents ?? this.enableMultiDayEvents,
-      hideWeekends: hideWeekends ?? this.hideWeekends,
-      showHolidays: showHolidays ?? this.showHolidays,
-      enableVerticalScroll: enableVerticalScroll ?? this.enableVerticalScroll,
-      allowSameDayRange: allowSameDayRange ?? this.allowSameDayRange,
-      enableSwipeNavigation:
-          enableSwipeNavigation ?? this.enableSwipeNavigation,
-      enableDragAndDrop: enableDragAndDrop ?? this.enableDragAndDrop,
-      show24HourFormat: show24HourFormat ?? this.show24HourFormat,
-      showEventTime: showEventTime ?? this.showEventTime,
-      showEventLocation: showEventLocation ?? this.showEventLocation,
-      showEventIcon: showEventIcon ?? this.showEventIcon,
-      maxEventsPerDay: maxEventsPerDay ?? this.maxEventsPerDay,
-      compactMode: compactMode ?? this.compactMode,
-      showEventDots: showEventDots ?? this.showEventDots,
-      maxEventDotsPerDay: maxEventDotsPerDay ?? this.maxEventDotsPerDay,
-      enableLongPress: enableLongPress ?? this.enableLongPress,
-      enableDoubleTap: enableDoubleTap ?? this.enableDoubleTap,
-      animationDuration: animationDuration ?? this.animationDuration,
-      locale: locale ?? this.locale,
-      holidays: holidays ?? this.holidays,
-      holidayNames: holidayNames ?? this.holidayNames,
-    );
-  }
+  }) =>
+      CalendarConfig(
+        initialView: initialView ?? this.initialView,
+        showWeekNumbers: showWeekNumbers ?? this.showWeekNumbers,
+        weekStartDay: weekStartDay ?? this.weekStartDay,
+        minDate: minDate ?? this.minDate,
+        maxDate: maxDate ?? this.maxDate,
+        enableRangeSelection: enableRangeSelection ?? this.enableRangeSelection,
+        enableMultiDayEvents: enableMultiDayEvents ?? this.enableMultiDayEvents,
+        hideWeekends: hideWeekends ?? this.hideWeekends,
+        showHolidays: showHolidays ?? this.showHolidays,
+        enableVerticalScroll: enableVerticalScroll ?? this.enableVerticalScroll,
+        allowSameDayRange: allowSameDayRange ?? this.allowSameDayRange,
+        enableSwipeNavigation:
+            enableSwipeNavigation ?? this.enableSwipeNavigation,
+        enableDragAndDrop: enableDragAndDrop ?? this.enableDragAndDrop,
+        show24HourFormat: show24HourFormat ?? this.show24HourFormat,
+        showEventTime: showEventTime ?? this.showEventTime,
+        showEventLocation: showEventLocation ?? this.showEventLocation,
+        showEventIcon: showEventIcon ?? this.showEventIcon,
+        maxEventsPerDay: maxEventsPerDay ?? this.maxEventsPerDay,
+        compactMode: compactMode ?? this.compactMode,
+        showEventDots: showEventDots ?? this.showEventDots,
+        maxEventDotsPerDay: maxEventDotsPerDay ?? this.maxEventDotsPerDay,
+        enableLongPress: enableLongPress ?? this.enableLongPress,
+        enableDoubleTap: enableDoubleTap ?? this.enableDoubleTap,
+        animationDuration: animationDuration ?? this.animationDuration,
+        locale: locale ?? this.locale,
+        holidays: holidays ?? this.holidays,
+        holidayNames: holidayNames ?? this.holidayNames,
+      );
 }

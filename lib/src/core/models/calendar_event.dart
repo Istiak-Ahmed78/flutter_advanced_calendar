@@ -1,10 +1,198 @@
 import 'package:flutter/material.dart';
+
+import '../utils/date_utils.dart' as calendar_utils;
 import 'enums.dart';
 import 'recurrence_rule.dart';
-import '../utils/date_utils.dart' as calendar_utils;
 
 /// Calendar event model with full feature support
 class CalendarEvent {
+  CalendarEvent({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.startDate,
+    required this.endDate,
+    this.isAllDay = false,
+    this.color = Colors.blue,
+    this.textColor,
+    this.dotColor, // NEW
+    this.durationDays,
+    this.location,
+    this.icon,
+    this.category,
+    this.priority = EventPriority.normal,
+    this.status = EventStatus.confirmed,
+    this.recurrenceRule,
+    this.exceptionDates,
+    this.currentDay,
+    this.totalDays,
+    this.customData,
+  }) : assert(
+          !endDate.isBefore(startDate),
+          'End date must be after or equal to start date',
+        );
+
+  /// Create from JSON (safe + backward compatible)
+  factory CalendarEvent.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely read color values
+    Color? parseColor(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is int) {
+        return Color(value);
+      }
+      if (value is String) {
+        final intValue = int.tryParse(value);
+        if (intValue != null) {
+          return Color(intValue);
+        }
+      }
+      return null;
+    }
+
+    // Helper function to safely read string values
+    String? parseString(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is String) {
+        return value;
+      }
+      return value.toString();
+    }
+
+    // Helper function to safely read bool values
+    bool parseBool(dynamic value, {bool defaultValue = false}) {
+      if (value is bool) {
+        return value;
+      }
+      if (value is String) {
+        return value.toLowerCase() == 'true';
+      }
+      if (value is int) {
+        return value != 0;
+      }
+      return defaultValue;
+    }
+
+    // Helper function to safely read int values
+    int? parseInt(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is int) {
+        return value;
+      }
+      if (value is String) {
+        return int.tryParse(value);
+      }
+      if (value is double) {
+        return value.toInt();
+      }
+      return null;
+    }
+
+    // Helper to safely convert dynamic to Map<String, dynamic>
+    Map<String, dynamic>? safeMap(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is Map<String, dynamic>) {
+        return value;
+      }
+      if (value is Map) {
+        try {
+          return Map<String, dynamic>.from(value);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Helper to safely parse exception dates
+    List<DateTime>? parseExceptionDates(dynamic value) {
+      if (value == null) {
+        return null;
+      }
+      if (value is List<dynamic>) {
+        return value
+            .where((d) => d != null)
+            .map((d) => DateTime.parse(d.toString()))
+            .toList();
+      }
+      return null;
+    }
+
+    return CalendarEvent(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: parseString(json['description']),
+      startDate: DateTime.parse(json['startDate'].toString()),
+      endDate: DateTime.parse(json['endDate'].toString()),
+      isAllDay: parseBool(json['isAllDay']),
+      color: parseColor(json['color']) ?? Colors.blue,
+      textColor: parseColor(json['textColor']),
+      dotColor: parseColor(json['dotColor']),
+      durationDays: parseInt(json['durationDays']),
+      location: parseString(json['location']),
+      category: parseString(json['category']),
+      priority: EventPriority.values.firstWhere(
+        (e) => e.name == json['priority']?.toString(),
+        orElse: () => EventPriority.normal,
+      ),
+      status: EventStatus.values.firstWhere(
+        (e) => e.name == json['status']?.toString(),
+        orElse: () => EventStatus.confirmed,
+      ),
+      recurrenceRule: json['recurrenceRule'] != null
+          ? RecurrenceRule.fromJson(
+              safeMap(json['recurrenceRule']) ?? {},
+            )
+          : null,
+      exceptionDates: parseExceptionDates(json['exceptionDates']),
+      currentDay: parseInt(json['currentDay']),
+      totalDays: parseInt(json['totalDays']),
+      customData: safeMap(json['customData']),
+    );
+  }
+
+  /// Create range event (today + N days)
+  factory CalendarEvent.withDuration({
+    required String id,
+    required String title,
+    required DateTime startDate,
+    required int durationDays,
+    String? description,
+    Color color = Colors.blue,
+    Color? textColor,
+    Color? dotColor, // NEW
+    String? location,
+    IconData? icon,
+    String? category,
+    EventPriority priority = EventPriority.normal,
+    EventStatus status = EventStatus.confirmed,
+    Map<String, dynamic>? customData,
+  }) =>
+      CalendarEvent(
+        id: id,
+        title: title,
+        description: description,
+        startDate: startDate,
+        endDate: startDate.add(Duration(days: durationDays)),
+        durationDays: durationDays,
+        color: color,
+        textColor: textColor,
+        dotColor: dotColor, // NEW
+        isAllDay: true,
+        location: location,
+        icon: icon,
+        category: category,
+        priority: priority,
+        status: status,
+        customData: customData,
+      );
   final String id;
   final String title;
   final String? description;
@@ -38,69 +226,6 @@ class CalendarEvent {
   // Custom data
   final Map<String, dynamic>? customData;
 
-  CalendarEvent({
-    required this.id,
-    required this.title,
-    this.description,
-    required this.startDate,
-    required this.endDate,
-    this.isAllDay = false,
-    this.color = Colors.blue,
-    this.textColor,
-    this.dotColor, // NEW
-    this.durationDays,
-    this.location,
-    this.icon,
-    this.category,
-    this.priority = EventPriority.normal,
-    this.status = EventStatus.confirmed,
-    this.recurrenceRule,
-    this.exceptionDates,
-    this.currentDay,
-    this.totalDays,
-    this.customData,
-  }) : assert(
-          !endDate.isBefore(startDate),
-          'End date must be after or equal to start date',
-        );
-
-  /// Create range event (today + N days)
-  factory CalendarEvent.withDuration({
-    required String id,
-    required String title,
-    required DateTime startDate,
-    required int durationDays,
-    String? description,
-    Color color = Colors.blue,
-    Color? textColor,
-    Color? dotColor, // NEW
-    String? location,
-    IconData? icon,
-    String? category,
-    EventPriority priority = EventPriority.normal,
-    EventStatus status = EventStatus.confirmed,
-    Map<String, dynamic>? customData,
-  }) {
-    return CalendarEvent(
-      id: id,
-      title: title,
-      description: description,
-      startDate: startDate,
-      endDate: startDate.add(Duration(days: durationDays)),
-      durationDays: durationDays,
-      color: color,
-      textColor: textColor,
-      dotColor: dotColor, // NEW
-      isAllDay: true,
-      location: location,
-      icon: icon,
-      category: category,
-      priority: priority,
-      status: status,
-      customData: customData,
-    );
-  }
-
   /// Get the effective dot color (uses dotColor if set, otherwise uses event color)
   Color get effectiveDotColor => dotColor ?? color;
 
@@ -114,7 +239,9 @@ class CalendarEvent {
 
   /// Calculate current day in multi-day event
   int? getCurrentDay(DateTime date) {
-    if (!isMultiDay) return null;
+    if (!isMultiDay) {
+      return null;
+    }
 
     final index =
         dateRange.indexWhere((d) => calendar_utils.isSameDay(d, date));
@@ -190,32 +317,31 @@ class CalendarEvent {
     int? currentDay,
     int? totalDays,
     Map<String, dynamic>? customData,
-  }) {
-    return CalendarEvent(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-      isAllDay: isAllDay ?? this.isAllDay,
-      color: color ?? this.color,
-      textColor: textColor ?? this.textColor,
-      dotColor: dotColor ?? this.dotColor, // NEW
-      durationDays: durationDays ?? this.durationDays,
-      location: location ?? this.location,
-      icon: icon ?? this.icon,
-      category: category ?? this.category,
-      priority: priority ?? this.priority,
-      status: status ?? this.status,
-      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
-      exceptionDates: exceptionDates ?? this.exceptionDates,
-      currentDay: currentDay ?? this.currentDay,
-      totalDays: totalDays ?? this.totalDays,
-      customData: customData ?? this.customData,
-    );
-  }
+  }) =>
+      CalendarEvent(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        description: description ?? this.description,
+        startDate: startDate ?? this.startDate,
+        endDate: endDate ?? this.endDate,
+        isAllDay: isAllDay ?? this.isAllDay,
+        color: color ?? this.color,
+        textColor: textColor ?? this.textColor,
+        dotColor: dotColor ?? this.dotColor, // NEW
+        durationDays: durationDays ?? this.durationDays,
+        location: location ?? this.location,
+        icon: icon ?? this.icon,
+        category: category ?? this.category,
+        priority: priority ?? this.priority,
+        status: status ?? this.status,
+        recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+        exceptionDates: exceptionDates ?? this.exceptionDates,
+        currentDay: currentDay ?? this.currentDay,
+        totalDays: totalDays ?? this.totalDays,
+        customData: customData ?? this.customData,
+      );
 
-  /// Convert to JSON (NO deprecated APIs)
+  /// Convert to JSON
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -223,9 +349,9 @@ class CalendarEvent {
         'startDate': startDate.toIso8601String(),
         'endDate': endDate.toIso8601String(),
         'isAllDay': isAllDay,
-        'color': color.toARGB32(),
-        'textColor': textColor?.toARGB32(),
-        'dotColor': dotColor?.toARGB32(), // NEW
+        'color': color.toARGB32(), // FIXED
+        'textColor': textColor?.toARGB32(), // FIXED
+        'dotColor': dotColor?.toARGB32(), // FIXED
         'durationDays': durationDays,
         'location': location,
         'category': category,
@@ -239,72 +365,16 @@ class CalendarEvent {
         'customData': customData,
       };
 
-  /// Create from JSON (safe + backward compatible)
-  factory CalendarEvent.fromJson(Map<String, dynamic> json) {
-    int readColor(dynamic raw, int fallback) {
-      if (raw is int) return raw;
-      if (raw is String) return int.tryParse(raw) ?? fallback;
-      return fallback;
-    }
-
-    return CalendarEvent(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
-      isAllDay: json['isAllDay'] ?? false,
-      color: Color(
-        readColor(json['color'], Colors.blue.toARGB32()),
-      ),
-      textColor: json['textColor'] != null
-          ? Color(
-              readColor(
-                json['textColor'],
-                Colors.transparent.toARGB32(),
-              ),
-            )
-          : null,
-      dotColor: json['dotColor'] != null // NEW
-          ? Color(
-              readColor(
-                json['dotColor'],
-                Colors.transparent.toARGB32(),
-              ),
-            )
-          : null,
-      durationDays: json['durationDays'],
-      location: json['location'],
-      category: json['category'],
-      priority: EventPriority.values.firstWhere(
-        (e) => e.name == json['priority'],
-        orElse: () => EventPriority.normal,
-      ),
-      status: EventStatus.values.firstWhere(
-        (e) => e.name == json['status'],
-        orElse: () => EventStatus.confirmed,
-      ),
-      recurrenceRule: json['recurrenceRule'] != null
-          ? RecurrenceRule.fromJson(json['recurrenceRule'])
-          : null,
-      exceptionDates: json['exceptionDates'] != null
-          ? (json['exceptionDates'] as List)
-              .map((d) => DateTime.parse(d))
-              .toList()
-          : null,
-      currentDay: json['currentDay'],
-      totalDays: json['totalDays'],
-      customData: json['customData'],
-    );
-  }
-
   @override
   String toString() =>
       'CalendarEvent(id: $id, title: $title, start: $startDate, end: $endDate)';
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || (other is CalendarEvent && other.id == id);
+      identical(this, other) ||
+      other is CalendarEvent &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
 
   @override
   int get hashCode => id.hashCode;

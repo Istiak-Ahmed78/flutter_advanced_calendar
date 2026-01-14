@@ -5,6 +5,13 @@ import '../utils/date_utils.dart' as calendar_utils;
 
 /// Controller for managing calendar state and events
 class CalendarController extends ChangeNotifier {
+  CalendarController({
+    DateTime? initialDate,
+    CalendarView initialView = CalendarView.month,
+    int weekStartDay = DateTime.monday,
+  })  : _focusedDay = initialDate ?? DateTime.now(),
+        _currentView = initialView,
+        _weekStartDay = weekStartDay;
   DateTime _focusedDay;
   DateTime? _selectedDay;
   DateTime? _rangeStart;
@@ -18,14 +25,6 @@ class CalendarController extends ChangeNotifier {
   // Configuration
   int _weekStartDay = DateTime.monday;
   bool _hideWeekends = false;
-
-  CalendarController({
-    DateTime? initialDate,
-    CalendarView initialView = CalendarView.month,
-    int weekStartDay = DateTime.monday,
-  })  : _focusedDay = initialDate ?? DateTime.now(),
-        _currentView = initialView,
-        _weekStartDay = weekStartDay;
 
   // ==================== Getters ====================
 
@@ -64,7 +63,9 @@ class CalendarController extends ChangeNotifier {
 
   /// Get the selected range as a list of dates
   List<DateTime> get selectedRange {
-    if (!hasRangeSelection) return [];
+    if (!hasRangeSelection) {
+      return [];
+    }
     return calendar_utils.getDateRange(_rangeStart!, _rangeEnd!);
   }
 
@@ -128,7 +129,7 @@ class CalendarController extends ChangeNotifier {
 
   /// Issue #4: Jump to specific month and year
   void jumpToMonthYear(int month, int year) {
-    _focusedDay = DateTime(year, month, 1);
+    _focusedDay = DateTime(year, month);
     notifyListeners();
   }
 
@@ -293,19 +294,19 @@ class CalendarController extends ChangeNotifier {
 
   /// Check if day is in selected range
   bool isDayInRange(DateTime day) {
-    if (!hasRangeSelection) return false;
+    if (!hasRangeSelection) {
+      return false;
+    }
     return !day.isBefore(_rangeStart!) && !day.isAfter(_rangeEnd!);
   }
 
   /// Check if day is range start
-  bool isRangeStart(DateTime day) {
-    return _rangeStart != null && calendar_utils.isSameDay(_rangeStart!, day);
-  }
+  bool isRangeStart(DateTime day) =>
+      _rangeStart != null && calendar_utils.isSameDay(_rangeStart!, day);
 
   /// Check if day is range end
-  bool isRangeEnd(DateTime day) {
-    return _rangeEnd != null && calendar_utils.isSameDay(_rangeEnd!, day);
-  }
+  bool isRangeEnd(DateTime day) =>
+      _rangeEnd != null && calendar_utils.isSameDay(_rangeEnd!, day);
 
   // ==================== View Management ====================
 
@@ -368,21 +369,25 @@ class CalendarController extends ChangeNotifier {
 
   /// Replace all events
   void setEvents(List<CalendarEvent> events) {
-    _events.clear();
-    _events.addAll(events);
+    _events
+      ..clear()
+      ..addAll(events);
     notifyListeners();
   }
 
   /// Get events for a specific day
-  List<CalendarEvent> getEventsForDay(DateTime day) {
-    return _events.where((event) => event.occursOnDate(day)).toList()
-      ..sort((a, b) {
-        // Sort by start time
-        if (a.isAllDay && !b.isAllDay) return -1;
-        if (!a.isAllDay && b.isAllDay) return 1;
-        return a.startDate.compareTo(b.startDate);
-      });
-  }
+  List<CalendarEvent> getEventsForDay(DateTime day) =>
+      _events.where((event) => event.occursOnDate(day)).toList()
+        ..sort((a, b) {
+          // Sort by start time
+          if (a.isAllDay && !b.isAllDay) {
+            return -1;
+          }
+          if (!a.isAllDay && b.isAllDay) {
+            return 1;
+          }
+          return a.startDate.compareTo(b.startDate);
+        });
 
   /// Get events for a date range
   List<CalendarEvent> getEventsForRange(DateTime start, DateTime end) {
@@ -421,29 +426,23 @@ class CalendarController extends ChangeNotifier {
   }
 
   /// Get events by category
-  List<CalendarEvent> getEventsByCategory(String category) {
-    return _events.where((e) => e.category == category).toList();
-  }
+  List<CalendarEvent> getEventsByCategory(String category) =>
+      _events.where((e) => e.category == category).toList();
 
   /// Get events by priority
-  List<CalendarEvent> getEventsByPriority(EventPriority priority) {
-    return _events.where((e) => e.priority == priority).toList();
-  }
+  List<CalendarEvent> getEventsByPriority(EventPriority priority) =>
+      _events.where((e) => e.priority == priority).toList();
 
   /// Get events by status
-  List<CalendarEvent> getEventsByStatus(EventStatus status) {
-    return _events.where((e) => e.status == status).toList();
-  }
+  List<CalendarEvent> getEventsByStatus(EventStatus status) =>
+      _events.where((e) => e.status == status).toList();
 
   /// Check if day has events
-  bool hasEventsOnDay(DateTime day) {
-    return _events.any((event) => event.occursOnDate(day));
-  }
+  bool hasEventsOnDay(DateTime day) =>
+      _events.any((event) => event.occursOnDate(day));
 
   /// Get event count for day
-  int getEventCountForDay(DateTime day) {
-    return getEventsForDay(day).length;
-  }
+  int getEventCountForDay(DateTime day) => getEventsForDay(day).length;
 
   // ==================== Holiday Management ====================
 
@@ -457,7 +456,7 @@ class CalendarController extends ChangeNotifier {
 
   /// Add multiple holidays
   void addHolidays(List<DateTime> dates) {
-    for (var date in dates) {
+    for (final date in dates) {
       if (!_holidays.any((d) => calendar_utils.isSameDay(d, date))) {
         _holidays.add(date);
       }
@@ -478,9 +477,8 @@ class CalendarController extends ChangeNotifier {
   }
 
   /// Check if date is a holiday
-  bool isHoliday(DateTime date) {
-    return _holidays.any((d) => calendar_utils.isSameDay(d, date));
-  }
+  bool isHoliday(DateTime date) =>
+      _holidays.any((d) => calendar_utils.isSameDay(d, date));
 
   /// Issue #8: Check if today is a holiday
   bool isTodayHoliday() {
@@ -489,11 +487,9 @@ class CalendarController extends ChangeNotifier {
   }
 
   /// Get holidays in a date range
-  List<DateTime> getHolidaysInRange(DateTime start, DateTime end) {
-    return _holidays.where((holiday) {
-      return !holiday.isBefore(start) && !holiday.isAfter(end);
-    }).toList();
-  }
+  List<DateTime> getHolidaysInRange(DateTime start, DateTime end) => _holidays
+      .where((holiday) => !holiday.isBefore(start) && !holiday.isAfter(end))
+      .toList();
 
   /// Get holidays for current month
   List<DateTime> getHolidaysForMonth() {
@@ -512,6 +508,7 @@ class CalendarController extends ChangeNotifier {
   }
 
   /// Issue #5: Toggle hide weekends
+  // ignore: avoid_positional_boolean_parameters
   void setHideWeekends(bool hide) {
     _hideWeekends = hide;
     notifyListeners();
@@ -526,35 +523,28 @@ class CalendarController extends ChangeNotifier {
   // ==================== Utility Methods ====================
 
   /// Check if date is today
-  bool isToday(DateTime date) {
-    return calendar_utils.isToday(date);
-  }
+  bool isToday(DateTime date) => calendar_utils.isToday(date);
 
   /// Check if date is in focused month
-  bool isInFocusedMonth(DateTime date) {
-    return calendar_utils.isSameMonth(date, _focusedDay);
-  }
+  bool isInFocusedMonth(DateTime date) =>
+      calendar_utils.isSameMonth(date, _focusedDay);
 
   /// Check if date is weekend
-  bool isWeekend(DateTime date) {
-    return calendar_utils.isWeekend(date);
-  }
+  bool isWeekend(DateTime date) => calendar_utils.isWeekend(date);
 
   /// Get visible days for current month view
-  List<DateTime> getVisibleDays() {
-    return calendar_utils.getVisibleDays(
-      _focusedDay,
-      _weekStartDay,
-      hideWeekends: _hideWeekends,
-    );
-  }
+  List<DateTime> getVisibleDays() => calendar_utils.getVisibleDays(
+        _focusedDay,
+        _weekStartDay,
+        hideWeekends: _hideWeekends,
+      );
 
   /// Get days in current week
   List<DateTime> getDaysInWeek() {
     final start = calendar_utils.getStartOfWeek(_focusedDay, _weekStartDay);
     final days = <DateTime>[];
 
-    for (int i = 0; i < 7; i++) {
+    for (var i = 0; i < 7; i++) {
       final day = start.add(Duration(days: i));
       if (!_hideWeekends || !calendar_utils.isWeekend(day)) {
         days.add(day);
