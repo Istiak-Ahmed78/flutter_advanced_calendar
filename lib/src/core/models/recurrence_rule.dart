@@ -1,44 +1,104 @@
 import 'enums.dart';
 
-/// Recurrence end condition
+/// Defines when a recurring event series should end.
+///
+/// Supports three types of end conditions:
+/// - Never ending (continues indefinitely)
+/// - Until a specific date
+/// - After a specific number of occurrences
+///
+/// Example:
+/// ```dart
+/// // Never ending
+/// final neverEnd = RecurrenceEnd.never();
+///
+/// // End on a specific date
+/// final untilEnd = RecurrenceEnd.until(DateTime(2024, 12, 31));
+///
+/// // End after 10 occurrences
+/// final countEnd = RecurrenceEnd.count(10);
+/// ```
 class RecurrenceEnd {
-  final RecurrenceEndType type;
-  final DateTime? until;
-  final int? count;
+  /// Creates a recurrence end condition based on occurrence count.
+  ///
+  /// [count] - The number of times the event should occur before ending.
+  ///
+  /// Example:
+  /// ```dart
+  /// final end = RecurrenceEnd.count(5); // Repeat 5 times
+  /// ```
+  RecurrenceEnd.count(this.count)
+      : type = RecurrenceEndType.count,
+        until = null;
 
+  /// Creates a recurrence that never ends.
+  ///
+  /// The event will continue repeating indefinitely.
+  ///
+  /// Example:
+  /// ```dart
+  /// final end = RecurrenceEnd.never();
+  /// ```
   RecurrenceEnd.never()
       : type = RecurrenceEndType.never,
         until = null,
         count = null;
 
+  /// Creates a recurrence end condition based on a specific date.
+  ///
+  /// [until] - The date when the recurrence should stop.
+  ///
+  /// Example:
+  /// ```dart
+  /// final end = RecurrenceEnd.until(DateTime(2024, 12, 31));
+  /// ```
   RecurrenceEnd.until(this.until)
       : type = RecurrenceEndType.until,
         count = null;
 
-  RecurrenceEnd.count(this.count)
-      : type = RecurrenceEndType.count,
-        until = null;
-
-  Map<String, dynamic> toJson() => {
-        'type': type.name,
-        'until': until?.toIso8601String(),
-        'count': count,
-      };
-
+  /// Creates a recurrence end condition from JSON data.
+  ///
+  /// Safely handles various data formats and provides fallback values.
   factory RecurrenceEnd.fromJson(Map<String, dynamic> json) {
+    final typeString = json['type']?.toString() ?? 'never';
     final type = RecurrenceEndType.values.firstWhere(
-      (e) => e.name == json['type'],
+      (e) => e.name == typeString,
+      orElse: () => RecurrenceEndType.never,
     );
 
     switch (type) {
       case RecurrenceEndType.never:
         return RecurrenceEnd.never();
       case RecurrenceEndType.until:
-        return RecurrenceEnd.until(DateTime.parse(json['until']));
+        final untilString = json['until']?.toString();
+        return RecurrenceEnd.until(
+          untilString != null ? DateTime.parse(untilString) : DateTime.now(),
+        );
       case RecurrenceEndType.count:
-        return RecurrenceEnd.count(json['count']);
+        final count = json['count'] is int
+            ? json['count'] as int
+            : json['count'] is String
+                ? int.tryParse(json['count'] as String) ?? 1
+                : 1;
+        return RecurrenceEnd.count(count);
     }
   }
+
+  /// The type of end condition.
+  final RecurrenceEndType type;
+
+  /// The date when recurrence ends (only for [RecurrenceEndType.until]).
+  final DateTime? until;
+
+  /// The number of occurrences before ending (only for [RecurrenceEndType.count]).
+  final int? count;
+
+  /// Converts this end condition to a JSON map.
+  Map<String, dynamic> toJson() => {
+        'type': type.name,
+        'until': until?.toIso8601String(),
+        'count': count,
+      };
 
   @override
   String toString() {
@@ -53,15 +113,50 @@ class RecurrenceEnd {
   }
 }
 
-/// Recurrence rule for repeating events
+/// Defines a recurrence pattern for repeating events.
+///
+/// Supports complex recurrence rules including:
+/// - Daily, weekly, monthly, and yearly frequencies
+/// - Custom intervals (e.g., every 2 weeks)
+/// - Specific days of the week
+/// - Specific days of the month
+/// - Specific months
+/// - End conditions (never, until date, or after count)
+///
+/// Example:
+/// ```dart
+/// // Every weekday (Monday-Friday)
+/// final weekdayRule = RecurrenceRule(
+///   frequency: RecurrenceFrequency.weekly,
+///   byWeekDay: [1, 2, 3, 4, 5], // Mon-Fri
+/// );
+///
+/// // Every 2 weeks on Monday and Wednesday, 10 times
+/// final customRule = RecurrenceRule(
+///   frequency: RecurrenceFrequency.weekly,
+///   interval: 2,
+///   byWeekDay: [1, 3], // Monday and Wednesday
+///   endCondition: RecurrenceEnd.count(10),
+/// );
+/// ```
 class RecurrenceRule {
-  final RecurrenceFrequency frequency;
-  final int interval;
-  final List<int>? byWeekDay; // 1=Monday, 7=Sunday
-  final List<int>? byMonthDay; // 1-31
-  final List<int>? byMonth; // 1-12
-  final RecurrenceEnd? endCondition;
-
+  /// Creates a recurrence rule.
+  ///
+  /// [frequency] - How often the event repeats (daily, weekly, monthly, yearly).
+  /// [interval] - The interval between occurrences. Must be greater than 0. Defaults to 1.
+  /// [byWeekDay] - List of weekdays when the event occurs (1=Monday, 7=Sunday).
+  /// [byMonthDay] - List of days of the month when the event occurs (1-31).
+  /// [byMonth] - List of months when the event occurs (1-12).
+  /// [endCondition] - When the recurrence should end.
+  ///
+  /// Example:
+  /// ```dart
+  /// final rule = RecurrenceRule(
+  ///   frequency: RecurrenceFrequency.weekly,
+  ///   interval: 2,
+  ///   byWeekDay: [1, 3, 5], // Mon, Wed, Fri
+  /// );
+  /// ```
   RecurrenceRule({
     required this.frequency,
     this.interval = 1,
@@ -71,21 +166,92 @@ class RecurrenceRule {
     this.endCondition,
   }) : assert(interval > 0, 'Interval must be greater than 0');
 
-  /// Generate occurrences within a date range
+  /// Creates a recurrence rule from JSON data.
+  ///
+  /// Safely handles various data formats and provides fallback values.
+  factory RecurrenceRule.fromJson(Map<String, dynamic> json) => RecurrenceRule(
+        frequency: RecurrenceFrequency.values.firstWhere(
+          (e) => e.name == (json['frequency']?.toString() ?? 'daily'),
+          orElse: () => RecurrenceFrequency.daily,
+        ),
+        interval: (json['interval'] is int)
+            ? json['interval'] as int
+            : (json['interval'] is String)
+                ? int.tryParse(json['interval'] as String) ?? 1
+                : 1,
+        byWeekDay: json['byWeekDay'] is List
+            ? List<int>.from(json['byWeekDay'] as List)
+            : null,
+        byMonthDay: json['byMonthDay'] is List
+            ? List<int>.from(json['byMonthDay'] as List)
+            : null,
+        byMonth: json['byMonth'] is List
+            ? List<int>.from(json['byMonth'] as List)
+            : null,
+        endCondition: json['endCondition'] != null
+            ? RecurrenceEnd.fromJson(
+                json['endCondition'] is Map<String, dynamic>
+                    ? json['endCondition'] as Map<String, dynamic>
+                    : Map<String, dynamic>.from(json['endCondition'] as Map))
+            : null,
+      );
+
+  /// How often the event repeats.
+  final RecurrenceFrequency frequency;
+
+  /// The interval between occurrences (e.g., 2 for "every 2 weeks").
+  final int interval;
+
+  /// List of weekdays when the event occurs (1=Monday, 7=Sunday).
+  ///
+  /// Only applicable for weekly frequency.
+  final List<int>? byWeekDay;
+
+  /// List of days of the month when the event occurs (1-31).
+  ///
+  /// Only applicable for monthly frequency.
+  final List<int>? byMonthDay;
+
+  /// List of months when the event occurs (1-12).
+  ///
+  /// Can be used with any frequency to limit occurrences to specific months.
+  final List<int>? byMonth;
+
+  /// When the recurrence should end.
+  final RecurrenceEnd? endCondition;
+
+  /// Generates all event occurrences within a date range.
+  ///
+  /// [start] - The start date of the recurring event.
+  /// [rangeStart] - The beginning of the date range to generate occurrences for.
+  /// [rangeEnd] - The end of the date range to generate occurrences for.
+  ///
+  /// Returns a list of DateTime objects representing each occurrence.
+  ///
+  /// Example:
+  /// ```dart
+  /// final rule = RecurrenceRule(
+  ///   frequency: RecurrenceFrequency.daily,
+  ///   endCondition: RecurrenceEnd.count(5),
+  /// );
+  /// final occurrences = rule.generateOccurrences(
+  ///   DateTime(2024, 1, 1),
+  ///   DateTime(2024, 1, 1),
+  ///   DateTime(2024, 1, 31),
+  /// );
+  /// ```
   List<DateTime> generateOccurrences(
     DateTime start,
     DateTime rangeStart,
     DateTime rangeEnd,
   ) {
     final occurrences = <DateTime>[];
-    DateTime current = start;
-    int count = 0;
+    var current = start;
+    var count = 0;
 
-    // Safety limit to prevent infinite loops
     const maxOccurrences = 1000;
 
     while (current.isBefore(rangeEnd) && count < maxOccurrences) {
-      // Check end condition
       if (endCondition != null) {
         if (endCondition!.type == RecurrenceEndType.until &&
             current.isAfter(endCondition!.until!)) {
@@ -97,12 +263,10 @@ class RecurrenceRule {
         }
       }
 
-      // Add if in range and matches all conditions
       if (!current.isBefore(rangeStart) && _matchesConditions(current)) {
         occurrences.add(current);
       }
 
-      // Calculate next occurrence
       current = _getNextOccurrence(current);
       count++;
     }
@@ -110,23 +274,24 @@ class RecurrenceRule {
     return occurrences;
   }
 
-  /// Check if date matches all recurrence conditions
+  /// Checks if a date matches all recurrence conditions.
+  ///
+  /// [date] - The date to check.
+  ///
+  /// Returns true if the date satisfies all specified conditions.
   bool _matchesConditions(DateTime date) {
-    // Check byWeekDay
     if (byWeekDay != null && byWeekDay!.isNotEmpty) {
       if (!byWeekDay!.contains(date.weekday)) {
         return false;
       }
     }
 
-    // Check byMonthDay
     if (byMonthDay != null && byMonthDay!.isNotEmpty) {
       if (!byMonthDay!.contains(date.day)) {
         return false;
       }
     }
 
-    // Check byMonth
     if (byMonth != null && byMonth!.isNotEmpty) {
       if (!byMonth!.contains(date.month)) {
         return false;
@@ -136,7 +301,11 @@ class RecurrenceRule {
     return true;
   }
 
-  /// Calculate next occurrence based on frequency
+  /// Calculates the next occurrence based on the frequency and interval.
+  ///
+  /// [current] - The current occurrence date.
+  ///
+  /// Returns the next occurrence date.
   DateTime _getNextOccurrence(DateTime current) {
     switch (frequency) {
       case RecurrenceFrequency.daily:
@@ -144,10 +313,9 @@ class RecurrenceRule {
 
       case RecurrenceFrequency.weekly:
         if (byWeekDay != null && byWeekDay!.isNotEmpty) {
-          // Find next matching weekday
-          DateTime next = current.add(const Duration(days: 1));
-          int daysChecked = 0;
-          const maxDays = 7 * 4; // Check up to 4 weeks
+          var next = current.add(const Duration(days: 1));
+          var daysChecked = 0;
+          const maxDays = 7 * 4;
 
           while (daysChecked < maxDays) {
             if (byWeekDay!.contains(next.weekday)) {
@@ -161,20 +329,19 @@ class RecurrenceRule {
         return current.add(Duration(days: 7 * interval));
 
       case RecurrenceFrequency.monthly:
-        int newYear = current.year;
-        int newMonth = current.month + interval;
+        var newYear = current.year;
+        var newMonth = current.month + interval;
 
         while (newMonth > 12) {
           newMonth -= 12;
           newYear++;
         }
 
-        int newDay = current.day;
+        var newDay = current.day;
         if (byMonthDay != null && byMonthDay!.isNotEmpty) {
           newDay = byMonthDay!.first;
         }
 
-        // Handle day overflow (e.g., Jan 31 -> Feb 31 = Feb 28/29)
         final daysInNewMonth = DateTime(newYear, newMonth + 1, 0).day;
         if (newDay > daysInNewMonth) {
           newDay = daysInNewMonth;
@@ -201,7 +368,11 @@ class RecurrenceRule {
     }
   }
 
-  /// Convert to RRULE string (RFC 5545)
+  /// Converts this recurrence rule to an RRULE string (RFC 5545 format).
+  ///
+  /// Returns a string in the iCalendar RRULE format.
+  ///
+  /// Example output: "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR;COUNT=10"
   String toRRule() {
     final buffer = StringBuffer('FREQ=${frequency.name.toUpperCase()}');
 
@@ -233,16 +404,18 @@ class RecurrenceRule {
     return buffer.toString();
   }
 
+  /// Converts a weekday number to RRULE format.
   String _weekDayToRRule(int weekday) {
     const days = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
     return days[weekday - 1];
   }
 
-  String _formatRRuleDate(DateTime date) {
-    return '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}T'
-        '${date.hour.toString().padLeft(2, '0')}${date.minute.toString().padLeft(2, '0')}${date.second.toString().padLeft(2, '0')}Z';
-  }
+  /// Formats a DateTime to RRULE date format.
+  String _formatRRuleDate(DateTime date) =>
+      '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}T'
+      '${date.hour.toString().padLeft(2, '0')}${date.minute.toString().padLeft(2, '0')}${date.second.toString().padLeft(2, '0')}Z';
 
+  /// Converts this recurrence rule to a JSON map.
   Map<String, dynamic> toJson() => {
         'frequency': frequency.name,
         'interval': interval,
@@ -252,21 +425,15 @@ class RecurrenceRule {
         'endCondition': endCondition?.toJson(),
       };
 
-  factory RecurrenceRule.fromJson(Map<String, dynamic> json) {
-    return RecurrenceRule(
-      frequency: RecurrenceFrequency.values.firstWhere(
-        (e) => e.name == json['frequency'],
-      ),
-      interval: json['interval'] ?? 1,
-      byWeekDay: json['byWeekDay']?.cast<int>(),
-      byMonthDay: json['byMonthDay']?.cast<int>(),
-      byMonth: json['byMonth']?.cast<int>(),
-      endCondition: json['endCondition'] != null
-          ? RecurrenceEnd.fromJson(json['endCondition'])
-          : null,
-    );
-  }
-
+  /// Creates a copy of this recurrence rule with the given fields replaced.
+  ///
+  /// Example:
+  /// ```dart
+  /// final newRule = rule.copyWith(
+  ///   interval: 2,
+  ///   endCondition: RecurrenceEnd.count(5),
+  /// );
+  /// ```
   RecurrenceRule copyWith({
     RecurrenceFrequency? frequency,
     int? interval,
@@ -274,16 +441,15 @@ class RecurrenceRule {
     List<int>? byMonthDay,
     List<int>? byMonth,
     RecurrenceEnd? endCondition,
-  }) {
-    return RecurrenceRule(
-      frequency: frequency ?? this.frequency,
-      interval: interval ?? this.interval,
-      byWeekDay: byWeekDay ?? this.byWeekDay,
-      byMonthDay: byMonthDay ?? this.byMonthDay,
-      byMonth: byMonth ?? this.byMonth,
-      endCondition: endCondition ?? this.endCondition,
-    );
-  }
+  }) =>
+      RecurrenceRule(
+        frequency: frequency ?? this.frequency,
+        interval: interval ?? this.interval,
+        byWeekDay: byWeekDay ?? this.byWeekDay,
+        byMonthDay: byMonthDay ?? this.byMonthDay,
+        byMonth: byMonth ?? this.byMonth,
+        endCondition: endCondition ?? this.endCondition,
+      );
 
   @override
   String toString() {
@@ -314,8 +480,11 @@ class RecurrenceRule {
     return buffer.toString();
   }
 
+  /// Formats the list of weekdays as a human-readable string.
   String _formatWeekDays() {
-    if (byWeekDay == null || byWeekDay!.isEmpty) return '';
+    if (byWeekDay == null || byWeekDay!.isEmpty) {
+      return '';
+    }
 
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return byWeekDay!.map((day) => dayNames[day - 1]).join(', ');

@@ -1,7 +1,9 @@
-name: flutter_advanced_calendar
+name: flutter_calendar_pro
 description: A highly customizable, feature-rich calendar package with event management, recurrence, multi-day events, and multiple view types.
-version: 0.0.1
-homepage: https://github.com/yourusername/flutter_advanced_calendar
+version: 1.0.0
+homepage: https://github.com/Istiak-Ahmed78/flutter_calendar_pro
+repository: https://github.com/Istiak-Ahmed78/flutter_calendar_pro
+issue_tracker: https://github.com/Istiak-Ahmed78/flutter_calendar_pro/issues
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -10,11 +12,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.19.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
