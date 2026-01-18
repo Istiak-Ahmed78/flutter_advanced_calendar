@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/ea975d22-1a4f-4f16-9e74-3bf2d6e81c1f" alt="Flutter Calendar Pro" width="300"/>
-
 <h1>📅 Flutter Calendar Pro</h1>
 
 <p><em>Build production-ready calendars in minutes</em></p>
