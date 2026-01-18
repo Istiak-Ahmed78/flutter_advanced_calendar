@@ -1,40 +1,32 @@
 <div align="center">
 
-<table>
-<tr>
-<td width="40%">
-<img width="672" height="1237" alt="Gemini_Generated_Image_czif1wczifd1wczif" src="https://github.com/user-attachments/assets/ea975d22-1a4f-4f16-9e74-3bf2d6e81c1f" />
+<img src="https://github.com/user-attachments/assets/ea975d22-1a4f-4f16-9e74-3bf2d6e81c1f" alt="Flutter Calendar Pro" width="300"/>
 
-</td>
-<td width="60%">
+<h1>📅 Flutter Calendar Pro</h1>
 
-# 📅 Flutter Calendar Pro
+<p><em>Build production-ready calendars in minutes</em></p>
 
-### *Build production-ready calendars in minutes*
+<p>Powerful calendar toolkit • Effortless integration</p>
 
-Powerful calendar toolkit • Effortless integration.
+<br>
 
+<p>
+  <a href="https://pub.dev/packages/flutter_calendar_pro">
+    <img src="https://img.shields.io/pub/v/flutter_calendar_pro.svg?label=pub&color=blue" alt="pub package">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="license">
+  </a>
+</p>
 
-```yaml
-dependencies:
-  flutter_calendar_pro: ^1.0.0
-```
-
-<div align="center">
-
-[![pub package](https://img.shields.io/pub/v/flutter_calendar_pro.svg?label=pub&color=blue)](https://pub.dev/packages/flutter_calendar_pro)
-[![license](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
-
-
-[📖 Documentation](https://pub.dev/packages/flutter_calendar_pro) • [🚀 Examples](./example)
+<p>
+  <a href="https://pub.dev/packages/flutter_calendar_pro">📖 Documentation</a> • 
+  <a href="./example">🚀 Examples</a>
+</p>
 
 </div>
 
-</td>
-</tr>
-</table>
-
-</div>
+<br>
 
 
 ---
