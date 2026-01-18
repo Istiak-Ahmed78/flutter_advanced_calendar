@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.0.3] - 2025-01-19
+
+### Changed
+- 📝 Version naming issue resolved
 
 ## [1.0.2] - 2025-01-19
 
@@ -73,6 +77,7 @@ First stable release of Flutter Calendar Pro!
 
 ---
 
+[1.0.3]: https://github.com/Istiak-Ahmed78/flutter_calendar_pro/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Istiak-Ahmed78/flutter_calendar_pro/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Istiak-Ahmed78/flutter_calendar_pro/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Istiak-Ahmed78/flutter_calendar_pro/releases/tag/v1.0.0
